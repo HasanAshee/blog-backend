@@ -20,12 +20,18 @@ export class ArticlesService {
     return article.save();
   }
 
-  async findAll(): Promise<Article[]> {
-    return this.articleModel
+  async findAll(page: number = 1, limit: number = 5): Promise<{ articles: Article[], total: number, totalPages: number }> {
+    const skip = (page - 1) * limit;
+    const total = await this.articleModel.countDocuments();
+    const articles = await this.articleModel
       .find()
       .populate('author', 'name')
       .populate('commentCount')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .exec();
+    return { articles, total, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string): Promise<Article | null> {

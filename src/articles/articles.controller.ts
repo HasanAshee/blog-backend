@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, ValidationPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, ValidationPipe, Patch, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -31,8 +31,8 @@ export class ArticlesController {
 
   @Get()
   @UseGuards(OptionalAuthGuard)
-  findAll(@GetUser('_id') userId: string | null) {
-      return this.articlesService.findAll();
+  findAll(@GetUser('_id') userId: string | null, @Query('page') page: string = '1') {
+    return this.articlesService.findAll(parseInt(page), 5);
   }
 
   @Get(':id')
