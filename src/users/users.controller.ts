@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ArticlesService } from 'src/articles/articles.service';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -29,5 +29,10 @@ export class UsersController {
     
     const userId = user._id;
     return this.usersService.updateProfile(userId, updateProfileDto);
+  }
+  @Post(':id/follow')
+  @UseGuards(AuthGuard('jwt'))
+  followUser(@Param('id') targetId: string, @GetUser('_id') currentUserId: string) {
+    return this.usersService.followUser(currentUserId, targetId);
   }
 }

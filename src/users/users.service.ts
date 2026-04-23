@@ -31,4 +31,32 @@ export class UsersService {
     Object.assign(user, updateProfileDto);
     return user.save();
   }
+
+  async followUser(currentUserId: string, targetUserId: string): Promise<User> {
+    if (currentUserId === targetUserId) {
+      throw new NotFoundException("You can't follow yourself");
+    }
+
+    const currentUser = await this.userModel.findById(currentUserId);
+    const targetUser = await this.userModel.findById(targetUserId);
+
+    if (!currentUser || !targetUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isFollowing = currentUser.following.some(id => id.toString() === targetUserId);
+
+    if (isFollowing) {
+      currentUser.following = currentUser.following.filter(id => id.toString() !== targetUserId);
+      targetUser.followers = targetUser.followers.filter(id => id.toString() !== currentUserId);
+    } else {
+      currentUser.following.push(targetUserId as any);
+      targetUser.followers.push(currentUserId as any);
+    }
+
+    await currentUser.save();
+    await targetUser.save();
+
+    return targetUser;
+  }
 }
