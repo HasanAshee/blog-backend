@@ -56,4 +56,10 @@ export class ArticlesController {
     return this.articlesService.remove(id, userId);
   }
 
+  @Get('feed/following')
+  @UseGuards(AuthGuard('jwt'))
+  findFollowingFeed(@GetUser('_id') userId: string, @Query('page') page: string = '1') {
+    return this.articlesService.findFollowingFeed(userId, parseInt(page), 5);
+  }
+
 }

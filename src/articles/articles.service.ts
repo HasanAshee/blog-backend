@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { UserDocument } from 'src/users/schemas/user.schema';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { Article, ArticleDocument } from './schemas/article.schema';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
@@ -10,6 +10,7 @@ import { Model, Schema as MongooseSchema } from 'mongoose';
 export class ArticlesService {
   constructor(
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async create(createArticleDto: CreateArticleDto, user: UserDocument): Promise<Article> {
@@ -124,4 +125,26 @@ export class ArticlesService {
       .exec();
   }
 
+  async findFollowingFeed(userId: string, page: number = 1, limit: number = 5): Promise<{ articles: Article[], total: number, totalPages: number }> {
+    const skip = (page - 1) * limit;
+    
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const followingIds = user.following;
+
+    const total = await this.articleModel.countDocuments({ author: { $in: followingIds } });
+    const articles = await this.articleModel
+      .find({ author: { $in: followingIds } })
+      .populate('author', 'name profilePictureUrl')
+      .populate('commentCount')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    return { articles, total, totalPages: Math.ceil(total / limit) };
+  }
 }
