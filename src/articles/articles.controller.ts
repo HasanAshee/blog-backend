@@ -17,6 +17,16 @@ export class ArticlesController {
     return this.articlesService.create(createArticleDto, user);
   }
 
+  @Get('tags/all')
+  getAllTags() {
+    return this.articlesService.getAllTags();
+  }
+
+  @Get('tag/:tag')
+  findByTag(@Param('tag') tag: string, @Query('page') page: string = '1') {
+    return this.articlesService.findByTag(tag, parseInt(page), 5);
+  }
+  
   @Post(':id/like')
   @UseGuards(AuthGuard('jwt'))
   likeArticle(@Param('id') id: string, @GetUser('_id') userId: string) {
@@ -61,5 +71,6 @@ export class ArticlesController {
   findFollowingFeed(@GetUser('_id') userId: string, @Query('page') page: string = '1') {
     return this.articlesService.findFollowingFeed(userId, parseInt(page), 5);
   }
+
 
 }

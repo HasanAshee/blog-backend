@@ -156,4 +156,24 @@ export class ArticlesService {
 
     return { articles, total, totalPages: Math.ceil(total / limit) };
   }
+
+  async findByTag(tag: string, page: number = 1, limit: number = 5): Promise<{ articles: Article[], total: number, totalPages: number }> {
+    const skip = (page - 1) * limit;
+    const total = await this.articleModel.countDocuments({ tags: tag });
+    const articles = await this.articleModel
+      .find({ tags: tag })
+      .populate('author', 'name profilePictureUrl')
+      .populate('commentCount')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+    return { articles, total, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getAllTags(): Promise<string[]> {
+    const articles = await this.articleModel.find().select('tags').exec();
+    const allTags = articles.flatMap(a => a.tags || []);
+    return [...new Set(allTags)];
+  }
 }

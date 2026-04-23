@@ -24,6 +24,9 @@ export class Article {
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }] })
   dislikes: User[];
+
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
