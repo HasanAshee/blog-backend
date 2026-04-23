@@ -4,10 +4,14 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>, 
+    private notificationsService: NotificationsService,) 
+  {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     const createdUser = new this.userModel(createUserDto);
@@ -52,6 +56,7 @@ export class UsersService {
     } else {
       currentUser.following.push(targetUserId as any);
       targetUser.followers.push(currentUserId as any);
+      await this.notificationsService.create(targetUserId, currentUserId, 'follow');
     }
 
     await currentUser.save();

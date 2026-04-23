@@ -5,12 +5,14 @@ import { Article, ArticleDocument } from './schemas/article.schema';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { Model, Schema as MongooseSchema } from 'mongoose';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class ArticlesService {
   constructor(
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(createArticleDto: CreateArticleDto, user: UserDocument): Promise<Article> {
@@ -86,14 +88,21 @@ export class ArticlesService {
     if (!article) {
       throw new NotFoundException('Article not found');
     }
-
     article.dislikes = article.dislikes.filter(id => id.toString() !== userId);
     
     const likesStrings = new Set(article.likes.map(id => id.toString()));
-    if (likesStrings.has(userId)) {
+    const wasLiked = likesStrings.has(userId);
+
+    if (wasLiked) {
       likesStrings.delete(userId);
     } else {
       likesStrings.add(userId);
+      await this.notificationsService.create(
+        article.author.toString(),
+        userId,
+        'like',
+        articleId
+      );
     }
     article.likes = [...likesStrings] as any;
     return article.save();

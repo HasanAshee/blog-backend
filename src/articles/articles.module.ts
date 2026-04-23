@@ -4,6 +4,7 @@ import { ArticlesController } from './articles.controller';
 import { ArticlesService } from './articles.service';
 import { Article, ArticleSchema } from './schemas/article.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
       { name: Article.name, schema: ArticleSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    NotificationsModule,
   ],
   controllers: [ArticlesController],
   providers: [ArticlesService],
